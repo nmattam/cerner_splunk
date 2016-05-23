@@ -271,7 +271,7 @@ class Chef
         permissions.each do |stanza, hash|
           hash.each do |key, values|
             if values.is_a?(Hash)
-              permissions[stanza][key] = values.map { |right, role| "#{right} : [ #{[*role].join(', ')} ]" }.join(', ')
+              permissions[stanza][key] = values.map { |right, role| "#{right} : [ #{[*role].join(', ')} ]" }.join(', '
             end
           end
         end
