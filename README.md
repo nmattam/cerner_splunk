@@ -1,6 +1,6 @@
 `cerner_splunk` Cookbook
 ===================
-Installs and Configures Splunk forwarders and servers, and other components related to the same.
+Instals and Configures Splunk forwarders and servers, and other components related to the same.
 
 Based on the work done by [BBY Solutions](https://github.com/bestbuycom/splunk_cookbook) and a previous Cerner team.
 
