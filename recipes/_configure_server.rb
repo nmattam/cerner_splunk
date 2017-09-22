@@ -75,6 +75,8 @@ when :cluster_master
 
   server_stanzas['clustering'] = settings
   server_stanzas['clustering']['mode'] = 'master'
+  server_stanzas['indexer_discovery'] = {}
+  server_stanzas['indexer_discovery']['pass4SymmKey'] = CernerSplunk::ConfTemplate.compose encrypt_password, CernerSplunk::ConfTemplate::Value.constant(value: 'changeme')
 when :cluster_slave
   cluster, bag = CernerSplunk.my_cluster(node)
   master_uri = bag['master_uri'] || ''

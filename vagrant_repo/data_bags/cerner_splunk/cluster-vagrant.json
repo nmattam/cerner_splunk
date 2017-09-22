@@ -16,6 +16,7 @@
     "33.33.33.13",
     "33.33.33.14"
   ],
+  "indexer_discovery": "site1",
   "receiver_settings": {
     "splunktcp": {
       "port": 9997

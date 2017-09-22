@@ -18,12 +18,26 @@ module CernerSplunk
           'forwardedindex.2.whitelist' => ''
         }
 
+
+
         # If we're part of a cluster, we only want to send events to our cluster.
         if node['splunk']['node_type'] == :forwarder
           CernerSplunk.all_clusters(node)
         else
           [CernerSplunk.my_cluster(node)]
         end.each do |(cluster, bag)|
+          if bag['indexer_discovery']
+            encrypt_password = CernerSplunk::ConfTemplate::Transform.splunk_encrypt node: node
+            output_stanzas["indexer_discovery:#{bag['indexer_discovery']}"] = {}
+            output_stanzas["indexer_discovery:#{bag['indexer_discovery']}"]['pass4SymmKey'] = CernerSplunk::ConfTemplate.compose encrypt_password, CernerSplunk::ConfTemplate::Value.constant(value: 'changeme')
+            output_stanzas["indexer_discovery:#{bag['indexer_discovery']}"]['master_uri'] = bag['master_uri']
+            output_stanzas["tcpout:#{bag['indexer_discovery']}"] = {}
+            output_stanzas["tcpout:#{bag['indexer_discovery']}"]["indexerDiscovery"] = bag['indexer_discovery']
+            output_stanzas["tcpout:#{bag['indexer_discovery']}"]["useACK"] = 'true'
+            output_stanzas["tcpout"]["defaultGroup"] = bag['indexer_discovery']
+            next
+          end
+
           port = bag['receiver_settings']
           port = port['splunktcp'] if port
           port = port['port'] if port
