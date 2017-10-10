@@ -43,8 +43,14 @@ server_stanzas['sslConfig']['sslPassword'] = CernerSplunk::ConfTemplate.compose 
 
 # Indexer Cluster Configuration
 case node['splunk']['node_type']
+  when :forwarder
+    bag = CernerSplunk.my_cluster_data(node)
+    site = bag['site'] if bag['multisite']
+    server_stanzas['general']['site'] = site
 when :search_head, :shc_search_head, :shc_captain, :server
   clusters = CernerSplunk.all_clusters(node).collect do |(cluster, bag)|
+    # site = bag['site'] unless bag['site'].nil? # let us not do it here. See comment below
+    server_stanzas['general']['site'] = site
     stanza = "clustermaster:#{cluster}"
     master_uri = bag['master_uri'] || ''
     settings = bag['settings'] || {}
@@ -55,8 +61,16 @@ when :search_head, :shc_search_head, :shc_captain, :server
     server_stanzas[stanza] = {}
     server_stanzas[stanza]['master_uri'] = master_uri
     server_stanzas[stanza]['pass4SymmKey'] = CernerSplunk::ConfTemplate.compose encrypt_password, CernerSplunk::ConfTemplate::Value.constant(value: pass) unless pass.empty?
+
+    # for search heads let us set this attribute inside the clustering stanza to let
+    # search multiple search head cluster. We need to consider the case where SH might
+    # on different sites in two different multisite cluster.
+    server_stanzas[stanza]['site'] = bag['site']
     # Until we support multisite clusters, set multisite explicitly false
-    server_stanzas[stanza]['multisite'] = false
+    # need to add some checks here. If the cluster configured is a multisite then set this.
+    # if the cluster configured is a single site, set this guy to false.
+    # not sure why it was explicitly set to false before because default is false.
+    server_stanzas[stanza]['multisite'] = true
     stanza
   end
 
@@ -69,14 +83,33 @@ when :search_head, :shc_search_head, :shc_captain, :server
   end
 when :cluster_master
   bag = CernerSplunk.my_cluster_data(node)
-  settings = (bag['settings'] || {}).reject do |k, _|
-    k.start_with?('_cerner_splunk') || SLAVE_ONLY_CONFIGS.include?(k)
+
+  settings = bag['settings'] || {}
+
+  unless bag['multisite'].nil?
+    site = bag['site'] || 'site1'
+    multisite_configs = CernerSplunk::DataBag.load(bag['multisite']) || {}
+    available_sites = multisite_configs['sites'].map {|site| CernerSplunk::DataBag.load(site)['site'] }
+    server_stanzas['general']['site'] = site
+    settings = multisite_configs['settings']
+    settings = (settings).reject do |k, _|
+      k.start_with?('_cerner_splunk') || SLAVE_ONLY_CONFIGS.include?(k)
+    end
+    server_stanzas['clustering'] = settings
+    server_stanzas['clustering']['cluster_label'] = 'cluster_site01'
+    server_stanzas['clustering']['multisite'] = true
+    server_stanzas['clustering']['available_sites'] = available_sites.join(',')
+    server_stanzas['clustering']['forwarder_site_failover'] = multisite_configs['forwarder_site_failover']
   end
 
-  server_stanzas['clustering'] = settings
+  server_stanzas['clustering'] = settings if bag['multisite'].nil?
   server_stanzas['clustering']['mode'] = 'master'
+  server_stanzas['indexer_discovery'] = {}
+  server_stanzas['indexer_discovery']['pass4SymmKey'] = CernerSplunk::ConfTemplate.compose encrypt_password, CernerSplunk::ConfTemplate::Value.constant(value: 'changeme')
 when :cluster_slave
   cluster, bag = CernerSplunk.my_cluster(node)
+  site = bag['site'] unless bag['site'].nil?
+  server_stanzas['general']['site'] = site
   master_uri = bag['master_uri'] || ''
   replication_ports = bag['replication_ports'] || {}
   settings = (bag['settings'] || {}).reject do |k, _|

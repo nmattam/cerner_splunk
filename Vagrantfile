@@ -14,6 +14,7 @@ end
   c1_slave1:    { ip: '33.33.33.12', hostname: 'slave01.splunk', ports: { 8003 => 8000, 8093 => 8089 } },
   c1_slave2:    { ip: '33.33.33.13', hostname: 'slave02.splunk', ports: { 8004 => 8000, 8094 => 8089 } },
   c1_slave3:    { ip: '33.33.33.14', hostname: 'slave03.splunk', ports: { 8005 => 8000, 8095 => 8089 } },
+  c1_slave4:    { ip: '33.33.33.54', hostname: 'slave04.splunk', ports: { 8013 => 8000, 8103 => 8089 } },
   s_standalone: { ip: '33.33.33.20', hostname: 'splunk2', ports: { 8006 => 8000, 8096 => 8089 } },
   s_license:    { ip: '33.33.33.30', hostname: 'splunk-license', ports: { 8007 => 8000, 8097 => 8089 } },
   c2_boot1:     { ip: '33.33.33.15', hostname: 'search01.splunk', ports: { 8008 => 8000, 8098 => 8089 } },
@@ -157,7 +158,7 @@ Vagrant.configure('2') do |config|
   end
 
   # Cruisin' Mos Espa In my Delorean ...
-  (1..3).each do |n|
+  (1..4).each do |n|
     symbol = "c1_slave#{n}".to_sym
     config.vm.define symbol do |cfg|
       default_omnibus config
@@ -165,7 +166,11 @@ Vagrant.configure('2') do |config|
         vb.customize ['modifyvm', :id, '--memory', 256]
       end
       cfg.vm.provision :chef_client do |chef|
-        chef_defaults chef, symbol
+        if n<3
+          chef_defaults chef, symbol
+        else
+          chef_defaults chef, symbol,'splunk_server_west'
+        end
         chef.add_recipe 'cerner_splunk::cluster_slave'
         # Uncomment the line below to set predefined GUIDs on the cluster slaves (for playing with license pooling)
         # chef.add_recipe 'cerner_splunk_test::configure_guids'

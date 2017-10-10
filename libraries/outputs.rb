@@ -24,6 +24,17 @@ module CernerSplunk
         else
           [CernerSplunk.my_cluster(node)]
         end.each do |(cluster, bag)|
+          unless bag['multisite'].nil? && bag['site'].nil?
+            encrypt_password = CernerSplunk::ConfTemplate::Transform.splunk_encrypt node: node
+            output_stanzas["indexer_discovery:#{bag['site']}"] = {}
+            output_stanzas["indexer_discovery:#{bag['site']}"]['pass4SymmKey'] = CernerSplunk::ConfTemplate.compose encrypt_password, CernerSplunk::ConfTemplate::Value.constant(value: 'changeme')
+            output_stanzas["indexer_discovery:#{bag['site']}"]['master_uri'] = bag['master_uri']
+            output_stanzas["tcpout:#{bag['site']}"] = {}
+            output_stanzas["tcpout:#{bag['site']}"]["indexerDiscovery"] = bag['site']
+            output_stanzas["tcpout:#{bag['site']}"]["useACK"] = 'true'
+            output_stanzas["tcpout"]["defaultGroup"] = bag['site']
+            next
+          end
           port = bag['receiver_settings']
           port = port['splunktcp'] if port
           port = port['port'] if port

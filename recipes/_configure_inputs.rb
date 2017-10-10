@@ -17,9 +17,9 @@ if %i[server cluster_slave].include? node['splunk']['node_type']
   port = port['port'] if port
 
   if port
-    input_stanzas["splunktcp://:#{port}"] = {}
-    input_stanzas["splunktcp://:#{port}"]['disabled'] = 0
-    input_stanzas["splunktcp://:#{port}"]['connection_host'] = 'none'
+    input_stanzas["splunktcp://#{port}"] = {}
+    input_stanzas["splunktcp://#{port}"]['disabled'] = 0
+    input_stanzas["splunktcp://#{port}"]['connection_host'] = 'none'
   else
     Chef::Log.warn "Receiver settings missing in configured cluster data bag: #{cluster}"
   end

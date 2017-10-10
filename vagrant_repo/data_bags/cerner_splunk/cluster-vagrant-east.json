@@ -1,0 +1,28 @@
+{
+  "id": "cluster-vagrant-east",
+  "site": "site1",
+  "multisite": "cerner_splunk/multisiteUS",
+  "master_uri": "https://33.33.33.11:8089",
+  "deployer_uri" : "https://33.33.33.28:8089",
+  "cluster_label": "cluster_1",
+  "replication_ports": {
+    "8080" : { }
+  },
+  "license_uri": null,
+  "receiver_settings": {
+    "splunktcp": {
+      "port": 9997
+    }
+  },
+  "shc_members": [
+    "https://33.33.33.15:8089",
+    "https://33.33.33.16:8089",
+    "https://33.33.33.17:8089"
+  ],
+  "shc_settings":{
+    "replication_factor" : 2,
+    "shcluster_label": "main-cluster"
+  },
+  "indexes" : "cerner_splunk/indexes-vagrant",
+  "apps": "cerner_splunk/cluster-apps-vagrant"
+}
