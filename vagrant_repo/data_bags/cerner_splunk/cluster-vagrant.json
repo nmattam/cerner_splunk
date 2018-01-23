@@ -5,7 +5,8 @@
   "settings": {
     "replication_factor" : 2,
     "search_factor" : 2,
-    "_cerner_splunk_indexer_count": 3
+    "_cerner_splunk_indexer_count": 3,
+    "pass4SymmKey": "$1$4SbKTydRjgGNs1AjdLic1tbd7I5U"
   },
   "replication_ports": {
     "8080" : { }
@@ -32,7 +33,7 @@
   "shc_settings":{
     "replication_factor" : 2,
     "shcluster_label": "main-cluster",
-    "pass4SymmKey": "$1$4SvBVSpNjhiY51BIRp6C3urG7YJU"
+    "pass4SymmKey": "$1$4SbKTydRjgGNs1AjdLic1tbH4JVU"
   },
   "indexes" : "cerner_splunk/indexes-vagrant",
   "apps": "cerner_splunk/cluster-apps-vagrant"
